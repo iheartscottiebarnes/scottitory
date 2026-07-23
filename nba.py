@@ -1,6 +1,11 @@
 import random
 import time
-
+import math
+rosternum = 0
+roster = []
+totalppg = 0
+totalapg = 0
+totalrpg = 0
 randomize = ['USA Stars', 'USA Stripes', 'World Players'
 ]
 starstats = {
@@ -34,25 +39,81 @@ starmatch = list(zip(usastars['Names'], starstats['ppg'], starstats['apg'], star
 stripematch = list(zip(usastripes['Names'], stripestats['ppg'], stripestats['apg'], stripestats['rpg']))
 worldmatch = list(zip(worldplayers['Names'], worldstats['ppg'], worldstats['apg'], worldstats['rpg']))
 
+player_stats = {}
+for name, ppg, apg, rpg in starmatch + stripematch + worldmatch:
+    player_stats[name] = {"ppg": ppg, "apg": apg, "rpg": rpg}
+
+
+
+
+def predict_season_record(totalppg, totalapg, totalrpg):
+    rating = totalppg * 1.0 + totalapg * 1.5 + totalrpg * 1.3
+    wins = round((rating - 140) * 0.45 + 50)
+    wins = max(40, min(82, wins))
+    losses = 82 - wins
+    return wins, losses
+
+
+def pick_player(team_choice):
+    if team_choice.lower() == "usa stripes":
+        return random.choice(usastripes['Names'])
+    elif team_choice.lower() == "usa stars":
+        return random.choice(usastars['Names'])
+    elif team_choice.lower() == "world players":
+        return random.choice(worldplayers['Names'])
+    else:
+        return None
+
 print("nba all-star 82-0 game")
 time.sleep(1)
 print("you'll be given a random player from a random team from the 2025-2026 nba all-star roster")
 time.sleep(2)
 print("your goal is to pick 5 and see how they do")
 time.sleep(2)
-print("first, spinning for a team...")
-team = random.choice(randomize)
-time.sleep(3)
-print("you got", team)
-time.sleep(3)
+team = input("first, pick a team, usa stars, usa stripes, and world players: ")
+print("you chose", team)
+time.sleep(1)
 print("next you'll get a random player from the team")
-if team.lower() == "usa stripes":
-    player = random.choice(usastripes['Names'])
-elif team.lower() == "usa stars":
-    player = random.choice(usastars['Names'])
-elif team.lower() == "world players":
-    player = random.choice(worldplayers['Names'])
+player = pick_player(team)
+if player is None:
+    print("not a team")
+    raise SystemExit
+
 time.sleep(3)
-print(player)
+print("you got", player)
+roster.append(player)
+stats = player_stats[player]
+totalppg += stats['ppg']
+totalapg += stats['apg']
+totalrpg += stats['rpg']
+rosternum += 1
+while rosternum < 5:
+    try:
+        team2 = input("now pick another team (usa stars, usa stripes, and world players): ")
+        player = pick_player(team2)
+        if player is None:
+            print("not a team")
+            break
+        time.sleep(3)
+        print("you got", player)
+        roster.append(player)
+        stats = player_stats[player]
+        totalppg += stats['ppg']
+        totalapg += stats['apg']
+        totalrpg += stats['rpg']
+
+        rosternum += 1
+    except ValueError:
+        break
+if rosternum == 5:
+    time.sleep(1)
+    print("now that you've gotten 5 players, your roster is")
+    print(roster)
+    print("total ppg:", round(totalppg, 1))
+    print("total apg:", round(totalapg, 1))
+    print("total rpg:", round(totalrpg, 1))
+    wins, losses = predict_season_record(totalppg, totalapg, totalrpg)
+    print(f"the predicted regular season win record of this team is {wins}-{losses}")
+
 
 
